@@ -7,6 +7,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  NAMESPACE: test-vue-app
 
 jobs:
   build-and-push:
@@ -42,10 +43,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Create GHCR pull secret (if not exists)
+      - name: Create Namespace and GHCR pull secret
         run: |
-          kubectl get secret ghcr-secret 2>/dev/null || \
+          kubectl create namespace ${{ env.NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
+          kubectl get secret ghcr-secret -n ${{ env.NAMESPACE }} 2>/dev/null || \
           kubectl create secret docker-registry ghcr-secret \
+            -n ${{ env.NAMESPACE }} \
             --docker-server=ghcr.io \
             --docker-username=${{ github.actor }} \
             --docker-password=${{ secrets.GHCR_PAT }}
@@ -58,26 +61,26 @@ jobs:
 
       - name: Deploy to K3s
         run: |
-          kubectl apply -f k8s/deployment.yml
+          kubectl apply -f k8s/deployment.yml -n ${{ env.NAMESPACE }}
         env:
           KUBECONFIG: /etc/rancher/k3s/k3s.yaml
 
       - name: Wait for rollout to complete
         run: |
-          kubectl rollout status deployment/vue-app --timeout=120s
+          kubectl rollout status deployment/vue-app -n ${{ env.NAMESPACE }} --timeout=120s
         env:
           KUBECONFIG: /etc/rancher/k3s/k3s.yaml
 
       - name: Display deployment status
         run: |
           echo "=== Pods ==="
-          kubectl get pods -l app=vue-app
+          kubectl get pods -l app=vue-app -n ${{ env.NAMESPACE }}
           echo ""
           echo "=== Service ==="
-          kubectl get svc vue-app-service
+          kubectl get svc vue-app-service -n ${{ env.NAMESPACE }}
           echo ""
           echo "=== Ingress ==="
-          kubectl get ingress vue-app-ingress
+          kubectl get ingress vue-app-ingress -n ${{ env.NAMESPACE }}
           echo ""
           echo "🚀 App deployed at: http://34.66.183.14"
         env:
