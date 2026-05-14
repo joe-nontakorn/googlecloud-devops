@@ -1,0 +1,90 @@
+---
+- name: Setup GitHub Self-hosted Runner
+  hosts: servers
+  become: true
+  vars:
+    runner_user: "{{ ansible_user }}"
+    runner_dir: "/home/{{ ansible_user }}/actions-runner"
+    repo_url: "https://github.com/joe-nontakorn/googlecloud-devops"
+    # ⚠️ ต้องเปลี่ยน runner_token ทุกครั้ง — ดูได้ที่:
+    # GitHub Repo → Settings → Actions → Runners → New self-hosted runner
+    runner_token: "A556LHHAC43TXVGFV5RXDCTKAWL6Q"
+
+  tasks:
+    - name: Create runner directory
+      file:
+        path: "{{ runner_dir }}"
+        state: directory
+        owner: "{{ runner_user }}"
+        group: "{{ runner_user }}"
+
+    - name: Check if runner is already downloaded
+      stat:
+        path: "{{ runner_dir }}/config.sh"
+      register: runner_exists
+
+    - name: Download and extract runner
+      become_user: "{{ runner_user }}"
+      shell: |
+        cd {{ runner_dir }}
+        curl -o actions-runner-linux-x64-2.321.0.tar.gz -L \
+          https://github.com/actions/runner/releases/download/v2.321.0/actions-runner-linux-x64-2.321.0.tar.gz
+        tar xzf ./actions-runner-linux-x64-2.321.0.tar.gz
+      args:
+        creates: "{{ runner_dir }}/config.sh"
+
+    - name: Install libicu and other requirements
+      apt:
+        name:
+          - libicu-dev
+          - libssl-dev
+        state: present
+        update_cache: yes
+
+    - name: Install runner dependencies
+      shell: "{{ runner_dir }}/bin/installdependencies.sh"
+      become: true
+
+    - name: Remove existing runner service (if any)
+      shell: |
+        cd {{ runner_dir }}
+        ./svc.sh uninstall
+      failed_when: false
+
+    - name: Configure runner
+      become_user: "{{ runner_user }}"
+      shell: |
+        cd {{ runner_dir }}
+        ./config.sh --url {{ repo_url }} \
+          --token {{ runner_token }} \
+          --name gcp-k3s-runner \
+          --labels self-hosted,linux,x64,gcp \
+          --unattended --replace
+
+    - name: Install runner as a service
+      shell: |
+        cd {{ runner_dir }}
+        ./svc.sh install {{ runner_user }}
+      failed_when: false
+
+    - name: Start runner service
+      shell: |
+        cd {{ runner_dir }}
+        ./svc.sh start
+      failed_when: false
+
+    - name: Verify runner status
+      shell: |
+        cd {{ runner_dir }}
+        ./svc.sh status
+      register: runner_status
+      failed_when: false
+
+    - name: Display runner status
+      debug:
+        msg: |
+          ✅ GitHub Self-hosted Runner installed!
+          - Name: gcp-k3s-runner
+          - Labels: self-hosted, linux, x64, gcp
+          - Status: {{ runner_status.stdout | default('checking...') }}
+          - ⚠️ ตรวจสอบสถานะที่: {{ repo_url }}/settings/actions/runners

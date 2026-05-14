@@ -1,0 +1,12 @@
+node_modules
+dist
+.git
+.gitignore
+.github
+README.md
+*.log
+terraform
+Ansible
+k8s
+*.md
+.vscode

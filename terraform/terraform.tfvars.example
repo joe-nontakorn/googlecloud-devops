@@ -1,0 +1,10 @@
+# Copy ไฟล์นี้ไปเป็น terraform.tfvars แล้วแก้ค่าตาม Project ของคุณ
+# cp terraform.tfvars.example terraform.tfvars
+
+project_id          = "ninth-iris-496303-n2"   # ← ดูจาก GCP Console URL หรือ Project Selector ด้านบนซ้าย
+region              = "us-central1"
+zone                = "us-central1-a"
+instance_name       = "instance-20260514-041434"  # ← ชื่อ Instance จริงของคุณ
+machine_type        = "e2-medium"
+ssh_user            = "nontakorn_kha"
+ssh_public_key_path = "~/.ssh/gcp_key.pub"
