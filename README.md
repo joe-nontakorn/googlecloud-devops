@@ -9,7 +9,7 @@
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  Google Cloud Platform (GCE)                                 │
-│  Instance: 34.66.183.14                                      │
+│  Instance: <YOUR_SERVER_IP>                                      │
 │                                                              │
 │   ┌──────────┐   ┌──────────┐   ┌──────────────────────┐    │
 │   │  Docker   │   │   K3s    │   │  GitHub Self-hosted  │    │
@@ -36,7 +36,7 @@ git push → GitHub Actions → Build Docker Image → Push to GHCR
                 ↓
        kubectl apply → K3s Deploy → Rollout Status
                 ↓
-       🌐 http://34.66.183.14
+       🌐 http://<YOUR_SERVER_IP>
 ```
 
 ---
@@ -63,7 +63,7 @@ googlecloud-devops/
 │   └── workflows/
 │       └── deploy.yml          # CI/CD Pipeline (GitHub Actions)
 ├── Ansible/
-│   ├── inventory.ini           # GCP Server (34.66.183.14)
+│   ├── inventory.ini           # GCP Server (<YOUR_SERVER_IP>)
 │   ├── playbook.yml            # ติดตั้ง Docker + K3s
 │   ├── dashboard.yml           # ติดตั้ง Kubernetes Dashboard
 │   └── runner.yml              # ติดตั้ง GitHub Self-hosted Runner
@@ -103,7 +103,7 @@ terraform plan
 terraform apply
 ```
 
-> ⚠️ ถ้ามี Instance อยู่แล้วที่ 34.66.183.14 ให้ใช้ `terraform import` แทน:
+> ⚠️ ถ้ามี Instance อยู่แล้วที่ <YOUR_SERVER_IP> ให้ใช้ `terraform import` แทน:
 > ```bash
 > terraform import google_compute_instance.gcp_server <project>/<zone>/<instance-name>
 > ```
@@ -131,7 +131,7 @@ ansible-playbook -i inventory.ini runner.yml
 
 ```bash
 # SSH เข้า GCE Instance
-ssh -i ~/.ssh/gcp_key nontakorn_kha@34.66.183.14
+ssh -i ~/.ssh/gcp_key nontakorn_kha@<YOUR_SERVER_IP>
 
 # สร้าง Secret สำหรับดึง Image จาก GHCR
 kubectl create secret docker-registry ghcr-secret \
@@ -158,10 +158,10 @@ GitHub Actions จะทำงานอัตโนมัติ:
 
 | Service              | URL                           | หมายเหตุ                           |
 |----------------------|-------------------------------|------------------------------------|
-| **แอปพลิเคชัน**      | http://34.66.183.14           | ผ่าน Traefik Ingress               |
-| **K8s Dashboard**    | https://34.66.183.14:30001    | ต้องใช้ Token เพื่อ Login           |
-| **K3s API Server**   | https://34.66.183.14:6443     | สำหรับ kubectl remote              |
-| **SSH**              | ssh -i ~/.ssh/gcp_key nontakorn_kha@34.66.183.14 | SSH Access |
+| **แอปพลิเคชัน**      | http://<YOUR_SERVER_IP>           | ผ่าน Traefik Ingress               |
+| **K8s Dashboard**    | https://<YOUR_SERVER_IP>:30001    | ต้องใช้ Token เพื่อ Login           |
+| **K3s API Server**   | https://<YOUR_SERVER_IP>:6443     | สำหรับ kubectl remote              |
+| **SSH**              | ssh -i ~/.ssh/gcp_key nontakorn_kha@<YOUR_SERVER_IP> | SSH Access |
 
 ---
 
@@ -171,7 +171,7 @@ GitHub Actions จะทำงานอัตโนมัติ:
 
 ```bash
 # SSH เข้า Instance
-ssh -i ~/.ssh/gcp_key nontakorn_kha@34.66.183.14
+ssh -i ~/.ssh/gcp_key nontakorn_kha@<YOUR_SERVER_IP>
 
 # ดู Pod ทั้งหมด
 kubectl get pods -A
@@ -190,10 +190,10 @@ kubectl rollout restart deployment vue-app
 
 ```powershell
 # ดึง Kubeconfig ออกมา
-scp -i ~/.ssh/gcp_key nontakorn_kha@34.66.183.14:/etc/rancher/k3s/k3s.yaml ./k3s_config.yaml
+scp -i ~/.ssh/gcp_key nontakorn_kha@<YOUR_SERVER_IP>:/etc/rancher/k3s/k3s.yaml ./k3s_config.yaml
 
 # แก้ server address ให้ชี้ไปที่ External IP
-(Get-Content k3s_config.yaml) -replace '127.0.0.1', '34.66.183.14' | Set-Content k3s_config.yaml
+(Get-Content k3s_config.yaml) -replace '127.0.0.1', '<YOUR_SERVER_IP>' | Set-Content k3s_config.yaml
 
 # ตั้งค่า KUBECONFIG
 $env:KUBECONFIG=".\k3s_config.yaml"
@@ -218,7 +218,7 @@ kubectl -n kubernetes-dashboard create token admin-user
 **วิธีแก้:**
 ```bash
 # ทดสอบ SSH ก่อน
-ssh -i ~/.ssh/gcp_key nontakorn_kha@34.66.183.14
+ssh -i ~/.ssh/gcp_key nontakorn_kha@<YOUR_SERVER_IP>
 
 # ตรวจสอบ key permission
 chmod 600 ~/.ssh/gcp_key
