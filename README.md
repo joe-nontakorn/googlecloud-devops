@@ -103,7 +103,7 @@ terraform plan
 terraform apply
 ```
 
-> ⚠️ ถ้ามี Instance อยู่แล้วที่ 34.66.183.14 ให้ใช้ `terraform import` แทน:
+> ⚠️ ถ้ามี Instance อยู่แล้วที่ 34.xxx.xxx.xx ให้ใช้ `terraform import` แทน:
 > ```bash
 > terraform import google_compute_instance.gcp_server <project>/<zone>/<instance-name>
 > ```
@@ -158,10 +158,10 @@ GitHub Actions จะทำงานอัตโนมัติ:
 
 | Service              | URL                           | หมายเหตุ                           |
 |----------------------|-------------------------------|------------------------------------|
-| **แอปพลิเคชัน**      | http://34.66.183.14           | ผ่าน Traefik Ingress               |
-| **K8s Dashboard**    | https://34.66.183.14:30001    | ต้องใช้ Token เพื่อ Login           |
-| **K3s API Server**   | https://34.66.183.14:6443     | สำหรับ kubectl remote              |
-| **SSH**              | ssh -i ~/.ssh/gcp_key nontakorn_kha@34.66.183.14 | SSH Access |
+| **แอปพลิเคชัน**      | http://34.xxx.xxx.xx           | ผ่าน Traefik Ingress               |
+| **K8s Dashboard**    | https://34.xxx.xxx.xx:30001    | ต้องใช้ Token เพื่อ Login           |
+| **K3s API Server**   | https://34.xxx.xxx.xx:6443     | สำหรับ kubectl remote              |
+| **SSH**              | ssh -i ~/.ssh/gcp_key nontakorn_kha@34.xxx.xxx.xx.14 | SSH Access |
 
 ---
 
@@ -193,7 +193,7 @@ kubectl rollout restart deployment vue-app
 scp -i ~/.ssh/gcp_key nontakorn_kha@34.66.183.14:/etc/rancher/k3s/k3s.yaml ./k3s_config.yaml
 
 # แก้ server address ให้ชี้ไปที่ External IP
-(Get-Content k3s_config.yaml) -replace '127.0.0.1', '34.66.183.14' | Set-Content k3s_config.yaml
+(Get-Content k3s_config.yaml) -replace '127.0.0.1', '34.34.xxx.xxx.xx' | Set-Content k3s_config.yaml
 
 # ตั้งค่า KUBECONFIG
 $env:KUBECONFIG=".\k3s_config.yaml"
